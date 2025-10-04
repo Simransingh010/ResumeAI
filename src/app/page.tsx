@@ -1,103 +1,135 @@
+"use client";
+import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState, useCallback } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setIsLoggedIn(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+  }, [router, supabase]);
+
+  return (
+    <div className="relative min-h-[calc(100vh-0px)] overflow-hidden bg-gray-50 dark:bg-gray-950">
+      {/* Background grid and subtle animated orbs */}
+      <div className="bg-grid" aria-hidden />
+      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-400/10 blur-3xl animate-pulse" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-gradient-to-br from-fuchsia-500/10 to-purple-400/20 blur-3xl animate-pulse" />
+
+      {/* Hero */}
+      <section className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-4 pt-16 text-center sm:pt-24">
+        <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-xs text-gray-700 backdrop-blur dark:border-gray-800 dark:bg-gray-900/60 dark:text-gray-300">
+          AI-powered ATS resume analyzer
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight text-gray-900 dark:text-white sm:text-5xl">
+          Get instant resume scores, keyword matches, and actionable fixes
+        </h1>
+        <p className="mt-4 max-w-2xl text-base text-gray-600 dark:text-gray-400">
+          Our AI reviews your resume like a recruiter and an ATS: grades relevance, highlights gaps, and suggests precise improvements to get you more interviews.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          {isLoggedIn ? (
+            <button onClick={handleLogout} className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              Log out
+            </button>
+          ) : (
+            <Link href="/login" className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              Get started
+            </Link>
+          )}
+          <Link href="#features" className="rounded-md border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+            See how it works
+          </Link>
+        </div>
+      </section>
+
+      {/* Bento Box */}
+      <section id="features" className="relative z-10 mx-auto mt-16 max-w-6xl px-4 pb-24 sm:mt-24">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
+          {/* Score Card */}
+          <div className="group relative col-span-1 overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:col-span-2">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10">🏅</span>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">ATS Score</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Overall fit score with recruiter-style and ATS checks combined.</p>
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+              <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" />
+            </div>
+          </div>
+
+          {/* Keyword Match */}
+          <div className="relative col-span-1 overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:col-span-2">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10">🔎</span>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Keyword Match</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Job JD vs resume: skills coverage and missing keywords.</p>
+            <ul className="mt-3 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+              <li>• Matched: React, TypeScript, Tailwind</li>
+              <li>• Missing: GraphQL, Cypress</li>
+            </ul>
+          </div>
+
+          {/* Actionable Advice (tall) */}
+          <div className="relative col-span-1 overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:col-span-2 sm:row-span-2">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-500/10">🛠️</span>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Actionable Advice</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Concrete bullet fixes prioritized by impact.</p>
+            <ol className="mt-3 list-decimal space-y-2 pl-4 text-sm text-gray-700 dark:text-gray-300">
+              <li>Quantify impact in experience bullets.</li>
+              <li>Add role-specific keywords from JD.</li>
+              <li>Reorder sections for faster skim.</li>
+            </ol>
+          </div>
+
+          {/* Section Optimizer */}
+          <div className="relative col-span-1 overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:col-span-3">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-500/10">🧠</span>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Section Optimizer</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">AI rewrites summary and bullets for clarity, impact, and ATS parsing.</p>
+            <div className="mt-4 rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">Drag & drop your PDF or paste text</div>
+          </div>
+
+          {/* Export */}
+          <div className="relative col-span-1 overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:col-span-3">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-500/10">📄</span>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">One-click Export</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Download tailored versions for each job with tracked changes.</p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <Image src="/file.svg" width={14} height={14} alt="file" /> PDF, DOCX
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
+ 
