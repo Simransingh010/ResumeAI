@@ -9,22 +9,37 @@ export default function LoginPage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const mask = (v: string) => (v && v.length > 12 ? `${v.slice(0, 4)}…${v.slice(-4)}` : "[masked]");
 
   useEffect(() => {
-    // Fix: Await via .then()—resolve the Promise first
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      // Optional: Handle error (e.g., network issue)
       if (error) {
-        console.error('Session check failed:', error.message);
+        // console.error('Session check failed:', error.message);
         return;
       }
-      
-      // Now destructure safely—session is Session | null
       if (session) {
-        router.push('/');
+        try {
+          // console.log('[login] session user:', { id: session.user.id, email: session.user.email });
+          // console.log('[login] access_token (masked):', mask(session.access_token ?? ''));
+        } catch {}
+        router.push('/analyze');
       }
     });
-  }, [supabase, router]);  // Dependencies: Re-run if these change
+  }, [supabase, router]);
+
+  useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        try {
+          // console.log('[login] SIGNED_IN user:', { id: session.user.id, email: session.user.email });
+          // console.log('[login] access_token (masked):', mask(session.access_token ?? ''));
+        } catch {}
+      }
+    });
+    return () => {
+      subscription.subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   // Ripple spawner on the background grid
   useEffect(() => {

@@ -12,14 +12,18 @@
     "@google/generative-ai": "^0.24.1",
     "@heroicons/react": "^2.2.0",
     "@langchain/google-genai": "^0.2.18",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.58.0",
+    "canvas": "^3.2.0",
     "next": "15.5.4",
+    "pdfjs-dist": "^4.3.136",
     "pdf-parse": "^2.1.6",
+    "pdf2json": "3.2.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -46,41 +46,13 @@ export default function Header() {
           {/* Center: Menu */}
           <div className="hidden md:flex flex-1 justify-center">
             <ul className="flex items-center gap-8 text-gray-900 dark:text-gray-100">
-              <li>
-                <Link href="#" className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
-                  <span>Feature</span>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-gray-400">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
-                  <span>Platforms</span>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-gray-400">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
-                  <span>User Cases</span>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-gray-400">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
-                  <span>Resources</span>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-gray-400">
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-gray-700 dark:hover:text-gray-300">Pricing</Link>
-              </li>
+             <li>
+              <Link href="/analyze" className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
+                <span>Analyze</span>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-gray-400">
+                </svg>
+              </Link>
+             </li>
             </ul>
           </div>
 
