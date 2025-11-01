@@ -1,12 +1,15 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mask = (v: string) => (v && v.length > 12 ? `${v.slice(0, 4)}…${v.slice(-4)}` : "[masked]");
@@ -70,8 +73,8 @@ export default function LoginPage() {
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4 overflow-hidden">
       <div className="bg-grid" ref={containerRef} aria-hidden />
       <div className="relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md dark:bg-gray-900 dark:border dark:border-gray-800">
-        <h1 className="text-2xl font-bold text-center mb-6 text-white">Sign In to ATS Checker</h1>
-        <Auth
+          <h1 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Sign In to ATS Checker</h1>
+          <Auth
           supabaseClient={supabase}
           providers={['google']}  // Restrict to Google only
           appearance={{
