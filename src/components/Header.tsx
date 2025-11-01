@@ -2,11 +2,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 
 export default function Header() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -32,58 +35,72 @@ export default function Header() {
   }, [router, supabase]);
 
   return (
-    <nav className="bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-      <div className="mx-auto max-w-screen-xl px-4">
-        <div className="flex h-16 items-center">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-800 shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+            <Image src="/logo.png" width={180} height={100} alt="Logo" className="object-cover" />
+            
           {/* Left: Brand */}
-          <div className="flex flex-none items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/file.svg" width={28} height={28} alt="ATS Resume Checker logo" />
-              <span className="text-sm font-semibold tracking-tight dark:text-white">ATS Resume Checker</span>
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+                </div>
+              
             </Link>
           </div>
 
-          {/* Center: Menu */}
-          <div className="hidden md:flex flex-1 justify-center">
-            <ul className="flex items-center gap-8 text-gray-900 dark:text-gray-100">
-             <li>
-              <Link href="/analyze" className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
-                <span>Analyze</span>
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-gray-400">
-                </svg>
-              </Link>
-             </li>
-            </ul>
+          {/* Center: Navigation */}
+          <div className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+            <Link
+              href="/analyze"
+              className="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
+            >
+              Analyze
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
+            >
+              How it works
+            </Link>
           </div>
 
           {/* Right: Auth actions */}
-          <div className="hidden md:flex flex-none items-center gap-4">
+          <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                className="px-5 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 rounded-lg transition-all shadow-sm hover:shadow"
               >
                 Log out
               </button>
             ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-              >
-                Log in
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="hidden sm:block px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-5 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 rounded-lg transition-all shadow-sm hover:shadow"
+                >
+                  Get started
+                </Link>
+              </>
             )}
           </div>
 
           {/* Mobile menu button */}
-          <div className="ml-auto md:hidden">
+          <div className="ml-3 md:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md p-2 text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:ring-gray-700"
-              aria-label="Open main menu"
+              className="inline-flex items-center justify-center p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
+              aria-label="Open menu"
             >
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
