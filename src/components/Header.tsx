@@ -41,25 +41,19 @@ export default function Header() {
             <Image src="/logo.png" width={180} height={100} alt="Logo" className="object-cover" />
             
           {/* Left: Brand */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-                </div>
-              
-            </Link>
-          </div>
+          
 
           {/* Center: Navigation */}
           <div className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
             <Link
               href="/analyze"
-              className="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
+              className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
             >
               Analyze
             </Link>
             <Link
               href="/how-it-works"
-              className="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
+              className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
             >
               How it works
             </Link>
