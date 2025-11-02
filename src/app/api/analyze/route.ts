@@ -57,9 +57,25 @@ interface GeminiAnalysisResult {
 }
 
 /**
- * Extracts text content from a PDF buffer using pdfjs-dist.
+ * Extracts text content from a PDF buffer using pdf-parse (works in serverless).
+ * Falls back to pdfjs-dist if pdf-parse fails.
  */
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  // Try pdf-parse first (works better in serverless environments like Vercel)
+  try {
+    // Use dynamic require for CommonJS module
+    const pdfParse = require("pdf-parse");
+    const data = await pdfParse(buffer);
+    const text = data.text.trim();
+    if (text && text.length > 50) {
+      console.log("[pdf-parse] Successfully extracted text:", text.length, "characters");
+      return text;
+    }
+  } catch (err) {
+    console.warn("[pdf-parse] extraction failed, trying pdfjs-dist:", err);
+  }
+
+  // Fallback to pdfjs-dist (works better locally)
   try {
     const pdfjsLib = (await import("pdfjs-dist/legacy/build/pdf.mjs")) as typeof import("pdfjs-dist/legacy/build/pdf.mjs");
 
@@ -86,6 +102,7 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     }
 
     const finalText = parts.join("\n\n").trim();
+    console.log("[pdfjs] Successfully extracted text:", finalText.length, "characters");
     return finalText;
   } catch (err) {
     console.error("[pdfjs] extraction failed:", err);
@@ -221,9 +238,21 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    console.log("[analyze] Processing PDF:", file.name, "Size:", file.size, "bytes");
+    
     const text: string = await extractTextFromPDF(buffer);
+    console.log("[analyze] Extracted text length:", text.length);
+    
     if (!text || text.length < 50) {
-      return NextResponse.json({ error: "No extractable text found. Please ensure the PDF is text-based (not a scanned image)." }, { status: 400 });
+      console.error("[analyze] Insufficient text extracted. Length:", text.length);
+      return NextResponse.json({ 
+        error: "No extractable text found. Please ensure the PDF is text-based (not a scanned image).",
+        details: {
+          extractedLength: text.length,
+          fileName: file.name,
+          fileSize: file.size
+        }
+      }, { status: 400 });
     }
     
 

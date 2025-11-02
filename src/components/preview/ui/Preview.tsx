@@ -12,8 +12,8 @@ const Preview = () => {
   }
 
   return (
-    <div className="preview bg-white p-8 max-w-[8.5in] mx-auto rm-padding-print shadow-lg">
-      <div className="bg-white">
+    <div className="preview bg-white p-8 max-w-[8.5in] mx-auto rm-padding-print shadow-lg rounded-lg">
+      <div className="resume-content bg-white">
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-2">
