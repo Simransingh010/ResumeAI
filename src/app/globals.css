@@ -346,8 +346,10 @@ button[aria-label="Delete"]:hover {
 
   /* Remove padding for print */
   .rm-padding-print {
-    padding: 0 !important;
+    padding: 32px !important;
     margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
 
   /* Page setup */
@@ -367,9 +369,7 @@ button[aria-label="Delete"]:hover {
   .preview {
     overflow-y: visible !important;
     height: auto !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    max-width: 210mm !important;
     box-shadow: none !important;
   }
 
@@ -381,14 +381,15 @@ button[aria-label="Delete"]:hover {
 
   /* Watermark */
   .preview::after {
-    content: "Created using Resume AI";
+    content: "Created using ATSense";
     position: fixed;
     bottom: 5mm;
     right: 5mm;
-    opacity: 0.2;
+    opacity: 0.15;
     font-size: 8pt;
     text-align: right;
     z-index: -1;
+    color: #9ca3af;
   }
 
   /* Prevent page breaks in sections */
@@ -400,5 +401,10 @@ button[aria-label="Delete"]:hover {
   a {
     color: inherit !important;
     text-decoration: none !important;
+  }
+
+  /* Ensure proper spacing */
+  .resume-content {
+    width: 100%;
   }
 }

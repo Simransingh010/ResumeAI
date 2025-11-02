@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   
   // Ensure Node-only PDF libraries are not bundled; load at runtime instead
-  serverExternalPackages: ["pdfjs-dist", "canvas", "tesseract.js"],
+  serverExternalPackages: ["pdfjs-dist", "canvas", "tesseract.js", "pdf-parse"],
   
   experimental: {
     // Force Node.js runtime for route handlers
