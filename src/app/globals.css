@@ -1,8 +1,23 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #0a0a0a;
+      --foreground: #ededed;
+    }
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
+  }
 }
 
 @theme inline {
@@ -10,19 +25,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Subtle grid background and ripple effect for login page only */
@@ -62,5 +64,341 @@ body {
   100% {
     opacity: 0;
     box-shadow: 0 0 0 64px rgba(255,255,255,0), 0 0 0 96px rgba(255,255,255,0);
+  }
+}
+
+/* ATS Resume Builder Styles */
+::-webkit-scrollbar {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(229 231 235);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(192 38 211);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(162 28 175);
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+}
+
+.ul-padding {
+  padding-inline-start: 0.9rem;
+}
+
+.ul-padding-none {
+  padding-inline-start: 0;
+}
+
+.pi {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: rgb(17 24 39);
+  background-color: rgb(249 250 251);
+  border: 2px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.pi:focus {
+  background-color: white;
+  border-color: rgb(17 24 39);
+}
+
+.dark .pi {
+  color: rgb(243 244 246);
+  background-color: rgb(17 24 39);
+  border-color: rgb(55 65 81);
+}
+
+.dark .pi:focus {
+  background-color: rgb(31 41 55);
+  border-color: rgb(243 244 246);
+}
+
+.profileInput {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: rgb(17 24 39);
+  background-color: rgb(249 250 251);
+  border: 2px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.profileInput:focus {
+  background-color: white;
+  border-color: rgb(17 24 39);
+}
+
+.dark .profileInput {
+  color: rgb(243 244 246);
+  background-color: rgb(17 24 39);
+  border-color: rgb(55 65 81);
+}
+
+.dark .profileInput:focus {
+  background-color: rgb(31 41 55);
+  border-color: rgb(243 244 246);
+}
+
+.profileInput::file-selector-button {
+  border: 0;
+  background-color: rgb(17 24 39);
+  color: white;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profileInput::file-selector-button:hover {
+  background-color: rgb(55 65 81);
+}
+
+.dark .profileInput::file-selector-button {
+  background-color: white;
+  color: rgb(17 24 39);
+}
+
+.dark .profileInput::file-selector-button:hover {
+  background-color: rgb(229 231 235);
+}
+
+.flex-col-gap-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Button styles for add/delete actions */
+button[aria-label="Add"],
+button[aria-label="Delete"] {
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(17 24 39);
+  color: white;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+button[aria-label="Add"]:hover {
+  background-color: rgb(55 65 81);
+  transform: scale(1.05);
+}
+
+button[aria-label="Delete"] {
+  background-color: rgb(220 38 38);
+}
+
+button[aria-label="Delete"]:hover {
+  background-color: rgb(185 28 28);
+  transform: scale(1.05);
+}
+
+.dark button[aria-label="Add"] {
+  background-color: white;
+  color: rgb(17 24 39);
+}
+
+.dark button[aria-label="Add"]:hover {
+  background-color: rgb(229 231 235);
+}
+
+.dark button[aria-label="Delete"] {
+  background-color: rgb(239 68 68);
+  color: white;
+}
+
+.dark button[aria-label="Delete"]:hover {
+  background-color: rgb(220 38 38);
+}
+
+.flex-wrap-gap-2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.other-input {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: rgb(17 24 39);
+  background-color: rgb(249 250 251);
+  border: 2px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.other-input:focus {
+  background-color: white;
+  border-color: rgb(17 24 39);
+}
+
+.other-input:focus::placeholder {
+  color: transparent;
+}
+
+.dark .other-input {
+  color: rgb(243 244 246);
+  background-color: rgb(17 24 39);
+  border-color: rgb(55 65 81);
+}
+
+.dark .other-input:focus {
+  background-color: rgb(31 41 55);
+  border-color: rgb(243 244 246);
+}
+
+.input-title {
+  font-size: 1.125rem;
+  color: rgb(17 24 39);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.dark .input-title {
+  color: rgb(243 244 246);
+}
+
+.f-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.editable {
+  outline: none;
+}
+
+.editable:hover {
+  background-color: rgb(243 244 246);
+  cursor: text;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.profession {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.contact {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.social-media {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.content {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.sub-content {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.i-bold {
+  font-weight: 700 !important;
+}
+
+@media print {
+  /* Hide all UI elements */
+  .exclude-print {
+    display: none !important;
+  }
+
+  /* Remove padding for print */
+  .rm-padding-print {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* Body adjustments */
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Preview container */
+  .preview {
+    overflow-y: visible !important;
+    height: auto !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure content fits on page */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Watermark */
+  .preview::after {
+    content: "Created using Resume AI";
+    position: fixed;
+    bottom: 5mm;
+    right: 5mm;
+    opacity: 0.2;
+    font-size: 8pt;
+    text-align: right;
+    z-index: -1;
+  }
+
+  /* Prevent page breaks in sections */
+  .mb-6 {
+    page-break-inside: avoid;
+  }
+
+  /* Make links visible in print */
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
   }
 }
