@@ -127,6 +127,42 @@ export default function Home() {
               Get comprehensive analysis in seconds, not hours.
             </p>
           </div>
+
+          {/* Resume Builder */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-800 p-8 hover:border-gray-900 dark:hover:border-white transition-colors">
+            <div className="text-4xl mb-4">✍️</div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">Resume Builder</h3>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Create ATS-friendly resumes with our professional builder tool.
+            </p>
+          </div>
+
+          {/* AI Powered */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-800 p-8 hover:border-gray-900 dark:hover:border-white transition-colors">
+            <div className="text-4xl mb-4">🤖</div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">AI Powered</h3>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Advanced AI analyzes your resume like a real recruiter would.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="bg-gray-900 dark:bg-white rounded-2xl p-12 text-center">
+          <h2 className="text-4xl md:text-5xl font-black text-white dark:text-gray-900 mb-6">
+            Ready to Build Your Perfect Resume?
+          </h2>
+          <p className="text-xl text-gray-300 dark:text-gray-600 mb-8 max-w-2xl mx-auto">
+            Use our professional resume builder to create an ATS-optimized resume in minutes.
+          </p>
+          <Link 
+            href="/build-resume" 
+            className="inline-block rounded-lg bg-white dark:bg-gray-900 px-8 py-4 text-lg font-bold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            Start Building Now
+          </Link>
         </div>
       </section>
     </div>

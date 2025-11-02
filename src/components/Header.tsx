@@ -38,10 +38,11 @@ export default function Header() {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-800 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-            <Image src="/logo.png" width={180} height={100} alt="Logo" className="object-cover" />
-            
           {/* Left: Brand */}
-          
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" width={180} height={100} alt="Logo" className="object-cover cursor-pointer hover:opacity-90 transition-opacity" />
+          </Link>
+
 
           {/* Center: Navigation */}
           <div className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
@@ -50,6 +51,12 @@ export default function Header() {
               className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
             >
               Analyze
+            </Link>
+            <Link
+              href="/build-resume"
+              className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all"
+            >
+              Build Resume
             </Link>
             <Link
               href="/how-it-works"
