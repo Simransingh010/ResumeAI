@@ -167,12 +167,15 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
 /**
  * Sends resume to Gemini for structured ATS analysis.
  * Can accept either extracted text OR the raw PDF buffer for multimodal analysis.
+ * Includes retry logic for rate limits.
  */
 async function analyzeWithGemini(
   textOrBuffer: string | Buffer,
   jobDesc?: string,
-  isBuffer: boolean = false
+  isBuffer: boolean = false,
+  retryCount: number = 0
 ): Promise<GeminiAnalysisResult> {
+  const MAX_RETRIES = 2;
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY for Gemini analysis");
@@ -230,8 +233,9 @@ Analyze thoroughly:
 
 Provide specific, actionable feedback. Do not add extra commentary outside the JSON.`;
 
-  // Use gemini-2.0-flash for multimodal (PDF) support, gemini-2.5-flash-lite for text-only
-  const modelName = isBuffer ? "gemini-2.0-flash" : "gemini-2.0-flash";
+  // Use gemini-1.5-flash which has better free tier limits
+  // gemini-2.0-flash has stricter quotas on free tier
+  const modelName = "gemini-1.5-flash";
   const model = genAIClient.getGenerativeModel({ model: modelName });
 
   // Build the content parts
@@ -258,38 +262,53 @@ Provide specific, actionable feedback. Do not add extra commentary outside the J
     parts.push({ text: `Job Description:\n${jobDesc}` });
   }
 
-  const response = await model.generateContent({
-    contents: [{ role: "user", parts }],
-  });
-
-  const answer = response.response.text();
   try {
-    const trimmed = answer.trim();
-    const withoutFences = trimmed
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/```$/i, "")
-      .trim();
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts }],
+    });
 
-    const jsonCandidate = withoutFences.startsWith("{") && withoutFences.endsWith("}")
-      ? withoutFences
-      : withoutFences.match(/\{[\s\S]*\}/)?.[0] ?? "";
+    const answer = response.response.text();
+    try {
+      const trimmed = answer.trim();
+      const withoutFences = trimmed
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/```$/i, "")
+        .trim();
 
-    if (!jsonCandidate) {
-      throw new Error("Gemini response did not contain JSON payload");
+      const jsonCandidate = withoutFences.startsWith("{") && withoutFences.endsWith("}")
+        ? withoutFences
+        : withoutFences.match(/\{[\s\S]*\}/)?.[0] ?? "";
+
+      if (!jsonCandidate) {
+        throw new Error("Gemini response did not contain JSON payload");
+      }
+
+      const parsed = JSON.parse(jsonCandidate) as GeminiAnalysisResult;
+      if (
+        typeof parsed.score === "number" &&
+        Array.isArray(parsed.feedback) &&
+        typeof parsed.summary === "string"
+      ) {
+        return parsed;
+      }
+      throw new Error("Gemini response did not match expected structure");
+    } catch (parseErr) {
+      console.error("[gemini] failed to parse analysis", { answer, parseErr });
+      throw new Error("Failed to parse analysis from Gemini");
     }
-
-    const parsed = JSON.parse(jsonCandidate) as GeminiAnalysisResult;
-    if (
-      typeof parsed.score === "number" &&
-      Array.isArray(parsed.feedback) &&
-      typeof parsed.summary === "string"
-    ) {
-      return parsed;
-    }
-    throw new Error("Gemini response did not match expected structure");
   } catch (err) {
-    console.error("[gemini] failed to parse analysis", { answer, err });
-    throw new Error("Failed to parse analysis from Gemini");
+    // Check if it's a rate limit error and retry
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("rate")) {
+      if (retryCount < MAX_RETRIES) {
+        const waitTime = Math.pow(2, retryCount + 1) * 1000; // 2s, 4s
+        console.log(`[gemini] Rate limited, retrying in ${waitTime}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return analyzeWithGemini(textOrBuffer, jobDesc, isBuffer, retryCount + 1);
+      }
+      throw new Error("Rate limit exceeded. Please try again in a minute.");
+    }
+    throw err;
   }
 }
 
@@ -362,8 +381,8 @@ export async function POST(req: NextRequest) {
     }
 
     // For storage, we'll use the extracted text if available, otherwise a placeholder
-    const contentForStorage = text && text.length > 50 
-      ? text 
+    const contentForStorage = text && text.length > 50
+      ? text
       : `[PDF analyzed via Gemini Vision - ${validFile.name}]`;
 
     const payload = {
