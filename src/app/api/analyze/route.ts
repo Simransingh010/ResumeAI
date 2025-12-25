@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createServerSupabase } from "@/lib/supabase";
 import { checkRateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
-import { validateResumeFile, validateExtractedText, validateJobDescription } from "@/lib/validation";
+import { validateResumeFile, validateJobDescription } from "@/lib/validation";
 import { ERROR_MESSAGES, FILE_LIMITS } from "@/lib/constants";
 
 export const runtime = "nodejs";
@@ -62,14 +62,15 @@ async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
     // Use the legacy build which works better in Node.js environments
     const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
-    // Disable worker for serverless compatibility
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+    // Set a dummy worker src to prevent the error, but disable actual worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "data:,";
 
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
       useSystemFonts: true,
       disableFontFace: true,
       verbosity: 0,
+      isEvalSupported: false,
     });
 
     const pdf = await loadingTask.promise;
@@ -125,48 +126,13 @@ async function extractTextWithPdfParse(buffer: Buffer): Promise<string> {
 }
 
 /**
- * Use Gemini Vision to extract text from PDF as a last resort.
- * This works by sending the PDF as base64 to Gemini's multimodal model.
- */
-async function extractTextWithGeminiVision(buffer: Buffer): Promise<string> {
-  try {
-    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    if (!apiKey) {
-      throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY");
-    }
-
-    const base64Data = buffer.toString("base64");
-
-    const model = genAIClient.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: "application/pdf",
-          data: base64Data,
-        },
-      },
-      {
-        text: "Extract ALL text content from this PDF resume. Return ONLY the raw text content, preserving the structure and formatting as much as possible. Do not add any commentary or analysis - just extract the text exactly as it appears in the document.",
-      },
-    ]);
-
-    const text = result.response.text().trim();
-    console.log(`[gemini-vision] Extracted ${text.length} characters`);
-    return text;
-  } catch (err) {
-    console.error("[gemini-vision] extraction failed:", err);
-    throw err;
-  }
-}
-
-/**
  * Main PDF text extraction function with multiple fallbacks.
+ * Returns empty string if all methods fail - caller should use Gemini Vision.
  */
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   const errors: string[] = [];
 
-  // Method 1: Try pdfjs-dist first (most reliable for serverless)
+  // Method 1: Try pdfjs-dist first
   try {
     const text = await extractTextWithPdfJs(buffer);
     if (text && text.length > 50) {
@@ -192,30 +158,21 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     console.warn("[extractTextFromPDF] pdf-parse failed:", errMsg);
   }
 
-  // Method 3: Use Gemini Vision as last resort (works with any PDF including scanned)
-  try {
-    console.log("[extractTextFromPDF] Trying Gemini Vision extraction...");
-    const text = await extractTextWithGeminiVision(buffer);
-    if (text && text.length > 50) {
-      return text;
-    }
-    console.warn("[extractTextFromPDF] Gemini Vision returned insufficient text:", text.length);
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    errors.push(`gemini-vision: ${errMsg}`);
-    console.warn("[extractTextFromPDF] Gemini Vision failed:", errMsg);
-  }
-
   // If all methods failed, log the errors and return empty string
+  // The caller will use Gemini Vision as fallback
   console.error("[extractTextFromPDF] All extraction methods failed:", errors);
   return "";
 }
 
 /**
- * Sends resume text to Gemini for structured ATS analysis.
- * Uses the gemini-2.5-flash-lite model, which is good for fast, structured JSON output.
+ * Sends resume to Gemini for structured ATS analysis.
+ * Can accept either extracted text OR the raw PDF buffer for multimodal analysis.
  */
-async function analyzeWithGemini(text: string, jobDesc?: string): Promise<GeminiAnalysisResult> {
+async function analyzeWithGemini(
+  textOrBuffer: string | Buffer,
+  jobDesc?: string,
+  isBuffer: boolean = false
+): Promise<GeminiAnalysisResult> {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY for Gemini analysis");
@@ -273,20 +230,37 @@ Analyze thoroughly:
 
 Provide specific, actionable feedback. Do not add extra commentary outside the JSON.`;
 
-  const response = await genAIClient
-    .getGenerativeModel({ model: "gemini-2.5-flash-lite" })
-    .generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            { text: `Resume:\n${text}` },
-            jobDesc ? { text: `Job Description:\n${jobDesc}` } : undefined,
-          ].filter(Boolean) as { text: string }[],
-        },
-      ],
+  // Use gemini-2.0-flash for multimodal (PDF) support, gemini-2.5-flash-lite for text-only
+  const modelName = isBuffer ? "gemini-2.0-flash" : "gemini-2.0-flash";
+  const model = genAIClient.getGenerativeModel({ model: modelName });
+
+  // Build the content parts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parts: any[] = [];
+
+  if (isBuffer) {
+    // Send PDF directly to Gemini for multimodal analysis
+    const base64Data = (textOrBuffer as Buffer).toString("base64");
+    parts.push({
+      inlineData: {
+        mimeType: "application/pdf",
+        data: base64Data,
+      },
     });
+    parts.push({ text: prompt });
+  } else {
+    // Send extracted text
+    parts.push({ text: prompt });
+    parts.push({ text: `Resume:\n${textOrBuffer as string}` });
+  }
+
+  if (jobDesc) {
+    parts.push({ text: `Job Description:\n${jobDesc}` });
+  }
+
+  const response = await model.generateContent({
+    contents: [{ role: "user", parts }],
+  });
 
   const answer = response.response.text();
   try {
@@ -371,29 +345,30 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await validFile.arrayBuffer());
     console.log("[analyze] Processing PDF:", validFile.name, "Size:", validFile.size, "bytes");
 
+    // Try to extract text from PDF
     const text: string = await extractTextFromPDF(buffer);
     console.log("[analyze] Extracted text length:", text.length);
 
-    // Validate extracted text
-    const textValidation = validateExtractedText(text);
-    if (!textValidation.valid) {
-      console.error("[analyze] Insufficient text extracted. Length:", text.length);
-      return NextResponse.json({
-        error: textValidation.error,
-        details: {
-          extractedLength: text.length,
-          fileName: validFile.name,
-          fileSize: validFile.size
-        }
-      }, { status: 400 });
+    let analysis: GeminiAnalysisResult;
+
+    if (text && text.length > 50) {
+      // Use extracted text for analysis
+      console.log("[analyze] Using extracted text for analysis");
+      analysis = await analyzeWithGemini(text, jobDesc, false);
+    } else {
+      // Fallback: Send PDF directly to Gemini for multimodal analysis
+      console.log("[analyze] Text extraction failed, using Gemini multimodal analysis");
+      analysis = await analyzeWithGemini(buffer, jobDesc, true);
     }
 
-
-    const analysis = await analyzeWithGemini(text, jobDesc);
+    // For storage, we'll use the extracted text if available, otherwise a placeholder
+    const contentForStorage = text && text.length > 50 
+      ? text 
+      : `[PDF analyzed via Gemini Vision - ${validFile.name}]`;
 
     const payload = {
       user_id: user.id,
-      content: text,
+      content: contentForStorage,
       // The 'embedding' field has been removed as it is no longer calculated by the LLM.
       // Ensure the 'embedding' column in your Supabase 'resumes' table is NULLABLE
       // or has a default value, or you will get a database error on insertion.
