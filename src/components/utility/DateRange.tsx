@@ -8,7 +8,7 @@ const DateRange = ({ startYear, endYear, id }: DateRangeProps) => {
   const lang = "en-Us";
 
   if (!startYear) {
-    return <p id={id} className="sub-content"></p>;
+    return <p id={id} className="sub-content text-gray-600"></p>;
   }
 
   const start = new Date(startYear);
@@ -26,7 +26,7 @@ const DateRange = ({ startYear, endYear, id }: DateRangeProps) => {
   }
 
   return (
-    <p id={id} className="sub-content">
+    <p id={id} className="sub-content text-gray-600">
       {startStr} — {endStr}
     </p>
   );

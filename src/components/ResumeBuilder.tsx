@@ -250,15 +250,22 @@ export default function ResumeBuilder() {
     { id: "skills", label: "Skills", isComplete: resumeData.skills.length > 0 },
   ], [resumeData]);
 
+  // Track if confetti has been shown for current completion state
+  const [hasShownConfetti, setHasShownConfetti] = useState(false);
+
   // Check for completion and show confetti
   useEffect(() => {
     const allComplete = progressSections.every((s) => s.isComplete);
-    if (allComplete && !showConfetti) {
+    if (allComplete && !hasShownConfetti) {
       setShowConfetti(true);
+      setHasShownConfetti(true);
       setToast({ message: "🎉 Amazing! Your resume is complete!", type: "success" });
       setTimeout(() => setShowConfetti(false), 4000);
+    } else if (!allComplete && hasShownConfetti) {
+      // Reset so confetti can show again if user completes resume again
+      setHasShownConfetti(false);
     }
-  }, [progressSections, showConfetti]);
+  }, [progressSections, hasShownConfetti]);
 
   // Scroll to section
   const scrollToSection = useCallback((sectionId: string) => {

@@ -13,8 +13,8 @@ const Preview = () => {
   }
 
   return (
-    <div className="preview bg-white p-8 max-w-[8.5in] mx-auto rm-padding-print shadow-lg rounded-lg">
-      <div className="resume-content bg-white">
+    <div className="preview bg-white text-black p-8 max-w-[8.5in] mx-auto rm-padding-print shadow-lg rounded-lg">
+      <div className="resume-content bg-white text-black">
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-2">
@@ -29,15 +29,15 @@ const Preview = () => {
               />
             )}
             <div>
-              <h1 className="name text-2xl font-bold">{resumeData.name}</h1>
-              <p className="profession text-lg">{resumeData.position}</p>
+              <h1 className="name text-2xl font-bold text-black">{resumeData.name}</h1>
+              <p className="profession text-lg text-gray-700">{resumeData.position}</p>
             </div>
           </div>
-          <div className="contact text-sm flex flex-wrap gap-3">
+          <div className="contact text-sm text-gray-600 flex flex-wrap gap-3">
             {resumeData.contactInformation && (
               <a
                 href={`tel:${resumeData.contactInformation.replace(/[^0-9+]/g, '')}`}
-                className="hover:text-fuchsia-600 transition-colors"
+                className="text-gray-600 hover:text-fuchsia-600 transition-colors"
               >
                 {resumeData.contactInformation}
               </a>
@@ -45,7 +45,7 @@ const Preview = () => {
             {resumeData.email && (
               <a
                 href={`mailto:${resumeData.email}`}
-                className="hover:text-fuchsia-600 transition-colors"
+                className="text-gray-600 hover:text-fuchsia-600 transition-colors"
               >
                 {resumeData.email}
               </a>
@@ -53,7 +53,7 @@ const Preview = () => {
             {resumeData.address && <span>{resumeData.address}</span>}
           </div>
           {resumeData.socialMedia && resumeData.socialMedia.length > 0 && (
-            <div className="social-media text-xs flex flex-wrap gap-3 mt-2">
+            <div className="social-media text-xs text-gray-600 flex flex-wrap gap-3 mt-2">
               {resumeData.socialMedia.map((social, index) => (
                 <span key={index}>
                   {social.socialMedia}:{" "}
@@ -61,7 +61,7 @@ const Preview = () => {
                     href={social.link.startsWith('http') ? social.link : `https://${social.link}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-fuchsia-600 transition-colors underline"
+                    className="text-gray-600 hover:text-fuchsia-600 transition-colors underline"
                   >
                     {social.link}
                   </a>
@@ -74,25 +74,25 @@ const Preview = () => {
         {/* Summary */}
         {resumeData.summary && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               SUMMARY
             </h2>
-            <p className="content text-sm">{resumeData.summary}</p>
+            <p className="content text-sm text-gray-800">{resumeData.summary}</p>
           </div>
         )}
 
         {/* Work Experience */}
         {resumeData.workExperience && resumeData.workExperience.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               WORK EXPERIENCE
             </h2>
             {resumeData.workExperience.map((work, index) => (
               <div key={index} className="mb-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="content font-bold">{work.position}</h3>
-                    <p className="content">{work.company}</p>
+                    <h3 className="content font-bold text-black">{work.position}</h3>
+                    <p className="content text-gray-700">{work.company}</p>
                   </div>
                   <DateRange
                     startYear={work.startYear}
@@ -100,12 +100,12 @@ const Preview = () => {
                   />
                 </div>
                 {work.description && (
-                  <p className="sub-content text-xs mt-1">{work.description}</p>
+                  <p className="sub-content text-xs mt-1 text-gray-700">{work.description}</p>
                 )}
                 {work.keyAchievements && (
                   <ul className="ul-padding list-disc mt-2">
                     {work.keyAchievements.split("\n").map((achievement, i) => (
-                      <li key={i} className="sub-content text-xs">
+                      <li key={i} className="sub-content text-xs text-gray-700">
                         {achievement}
                       </li>
                     ))}
@@ -119,20 +119,20 @@ const Preview = () => {
         {/* Projects */}
         {resumeData.projects && resumeData.projects.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               PROJECTS
             </h2>
             {resumeData.projects.map((project, index) => (
               <div key={index} className="mb-4">
                 <div className="flex justify-between items-start">
-                  <h3 className="content font-bold">{project.title}</h3>
+                  <h3 className="content font-bold text-black">{project.title}</h3>
                   <DateRange
                     startYear={project.startYear}
                     endYear={project.endYear}
                   />
                 </div>
                 {project.description && (
-                  <p className="sub-content text-xs mt-1">
+                  <p className="sub-content text-xs mt-1 text-gray-700">
                     {project.description}
                   </p>
                 )}
@@ -141,7 +141,7 @@ const Preview = () => {
                     {project.keyAchievements
                       .split("\n")
                       .map((achievement, i) => (
-                        <li key={i} className="sub-content text-xs">
+                        <li key={i} className="sub-content text-xs text-gray-700">
                           {achievement}
                         </li>
                       ))}
@@ -155,15 +155,15 @@ const Preview = () => {
         {/* Education */}
         {resumeData.education && resumeData.education.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               EDUCATION
             </h2>
             {resumeData.education.map((edu, index) => (
               <div key={index} className="mb-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="content font-bold">{edu.school}</h3>
-                    <p className="sub-content text-xs">{edu.degree}</p>
+                    <h3 className="content font-bold text-black">{edu.school}</h3>
+                    <p className="sub-content text-xs text-gray-700">{edu.degree}</p>
                   </div>
                   <DateRange startYear={edu.startYear} endYear={edu.endYear} />
                 </div>
@@ -175,13 +175,13 @@ const Preview = () => {
         {/* Skills */}
         {resumeData.skills && resumeData.skills.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               SKILLS
             </h2>
             {resumeData.skills.map((skillGroup, index) => (
               <div key={index} className="mb-2">
-                <h3 className="content font-bold">{skillGroup.title}</h3>
-                <p className="sub-content text-xs">
+                <h3 className="content font-bold text-black">{skillGroup.title}</h3>
+                <p className="sub-content text-xs text-gray-700">
                   {skillGroup.skills.join(", ")}
                 </p>
               </div>
@@ -192,22 +192,22 @@ const Preview = () => {
         {/* Languages */}
         {resumeData.languages && resumeData.languages.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               LANGUAGES
             </h2>
-            <p className="content text-sm">{resumeData.languages.join(", ")}</p>
+            <p className="content text-sm text-gray-800">{resumeData.languages.join(", ")}</p>
           </div>
         )}
 
         {/* Certifications */}
         {resumeData.certifications && resumeData.certifications.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2">
+            <h2 className="section-title text-lg font-bold border-b-2 border-black mb-2 text-black">
               CERTIFICATIONS
             </h2>
             <ul className="ul-padding list-disc">
               {resumeData.certifications.map((cert, index) => (
-                <li key={index} className="content text-sm">
+                <li key={index} className="content text-sm text-gray-800">
                   {cert}
                 </li>
               ))}

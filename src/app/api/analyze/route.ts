@@ -4,12 +4,6 @@ import { createServerSupabase } from "@/lib/supabase";
 import { checkRateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
 import { validateResumeFile, validateExtractedText, validateJobDescription } from "@/lib/validation";
 import { ERROR_MESSAGES, FILE_LIMITS } from "@/lib/constants";
-// No child processes or OCR needed; using pdfjs-dist Node build for text PDFs
-
-// In Node runtime we don't need a web worker for pdfjs; disable to avoid Next bundling worker chunks
-if (!process.env.PDFJS_DISABLE_WORKER) {
-  process.env.PDFJS_DISABLE_WORKER = "true";
-}
 
 export const runtime = "nodejs";
 
@@ -60,59 +54,164 @@ interface GeminiAnalysisResult {
 }
 
 /**
- * Extracts text content from a PDF buffer using pdf-parse (works in serverless).
- * Falls back to pdfjs-dist if pdf-parse fails.
+ * Extracts text content from a PDF buffer using pdfjs-dist.
+ * This is the most reliable method for serverless environments.
  */
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // Try pdf-parse first (works better in serverless environments like Vercel)
+async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
   try {
-    // Use dynamic import for CommonJS module
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfParseModule = await import("pdf-parse") as any;
-    const pdfParse = pdfParseModule.default || pdfParseModule;
-    const data = await pdfParse(buffer);
-    const text = data.text.trim();
-    if (text && text.length > 50) {
-      console.log("[pdf-parse] Successfully extracted text:", text.length, "characters");
-      return text;
-    }
-  } catch (err) {
-    console.warn("[pdf-parse] extraction failed, trying pdfjs-dist:", err);
-  }
+    // Use the legacy build which works better in Node.js environments
+    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
-  // Fallback to pdfjs-dist (works better locally)
-  try {
-    const pdfjsLib = (await import("pdfjs-dist/legacy/build/pdf.mjs")) as typeof import("pdfjs-dist/legacy/build/pdf.mjs");
-
-    // Required: valid workerSrc string, otherwise pdf.js fails fake-worker setup
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.mjs";
+    // Disable worker for serverless compatibility
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "";
 
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
+      useSystemFonts: true,
+      disableFontFace: true,
+      verbosity: 0,
     });
 
     const pdf = await loadingTask.promise;
     const numPages = pdf.numPages;
     const parts: string[] = [];
 
+    console.log(`[pdfjs] Processing ${numPages} pages...`);
+
     for (let i = 1; i <= numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      const text = (content.items as Array<{ str?: unknown }>)
-        .map((item) => (typeof item.str === "string" ? item.str : ""))
+      const pageText = content.items
+        .map((item: { str?: string }) => item.str || "")
         .join(" ")
         .replace(/\s+/g, " ")
         .trim();
-      if (text) parts.push(text);
+
+      if (pageText) {
+        parts.push(pageText);
+      }
     }
 
     const finalText = parts.join("\n\n").trim();
-    console.log("[pdfjs] Successfully extracted text:", finalText.length, "characters");
+    console.log(`[pdfjs] Extracted ${finalText.length} characters from ${numPages} pages`);
     return finalText;
   } catch (err) {
     console.error("[pdfjs] extraction failed:", err);
-    return "";
+    throw err;
   }
+}
+
+/**
+ * Extracts text using pdf-parse as a fallback.
+ * Note: pdf-parse may not work in all serverless environments.
+ */
+async function extractTextWithPdfParse(buffer: Buffer): Promise<string> {
+  try {
+    // Dynamic import with proper handling for the module
+    const pdfParse = (await import("pdf-parse")).default;
+
+    // pdf-parse options to improve extraction
+    const options = {
+      // Don't render pages, just extract text
+      max: 0,
+    };
+
+    const data = await pdfParse(buffer, options);
+    const text = data.text?.trim() || "";
+
+    console.log(`[pdf-parse] Extracted ${text.length} characters`);
+    return text;
+  } catch (err) {
+    console.error("[pdf-parse] extraction failed:", err);
+    throw err;
+  }
+}
+
+/**
+ * Use Gemini Vision to extract text from PDF as a last resort.
+ * This works by sending the PDF as base64 to Gemini's multimodal model.
+ */
+async function extractTextWithGeminiVision(buffer: Buffer): Promise<string> {
+  try {
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY");
+    }
+
+    const base64Data = buffer.toString("base64");
+
+    const model = genAIClient.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: "application/pdf",
+          data: base64Data,
+        },
+      },
+      {
+        text: "Extract ALL text content from this PDF resume. Return ONLY the raw text content, preserving the structure and formatting as much as possible. Do not add any commentary or analysis - just extract the text exactly as it appears in the document.",
+      },
+    ]);
+
+    const text = result.response.text().trim();
+    console.log(`[gemini-vision] Extracted ${text.length} characters`);
+    return text;
+  } catch (err) {
+    console.error("[gemini-vision] extraction failed:", err);
+    throw err;
+  }
+}
+
+/**
+ * Main PDF text extraction function with multiple fallbacks.
+ */
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  const errors: string[] = [];
+
+  // Method 1: Try pdfjs-dist first (most reliable for serverless)
+  try {
+    const text = await extractTextWithPdfJs(buffer);
+    if (text && text.length > 50) {
+      return text;
+    }
+    console.warn("[extractTextFromPDF] pdfjs returned insufficient text:", text.length);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    errors.push(`pdfjs: ${errMsg}`);
+    console.warn("[extractTextFromPDF] pdfjs failed:", errMsg);
+  }
+
+  // Method 2: Try pdf-parse as fallback
+  try {
+    const text = await extractTextWithPdfParse(buffer);
+    if (text && text.length > 50) {
+      return text;
+    }
+    console.warn("[extractTextFromPDF] pdf-parse returned insufficient text:", text.length);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    errors.push(`pdf-parse: ${errMsg}`);
+    console.warn("[extractTextFromPDF] pdf-parse failed:", errMsg);
+  }
+
+  // Method 3: Use Gemini Vision as last resort (works with any PDF including scanned)
+  try {
+    console.log("[extractTextFromPDF] Trying Gemini Vision extraction...");
+    const text = await extractTextWithGeminiVision(buffer);
+    if (text && text.length > 50) {
+      return text;
+    }
+    console.warn("[extractTextFromPDF] Gemini Vision returned insufficient text:", text.length);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    errors.push(`gemini-vision: ${errMsg}`);
+    console.warn("[extractTextFromPDF] Gemini Vision failed:", errMsg);
+  }
+
+  // If all methods failed, log the errors and return empty string
+  console.error("[extractTextFromPDF] All extraction methods failed:", errors);
+  return "";
 }
 
 /**
