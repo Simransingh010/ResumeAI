@@ -81,8 +81,9 @@ async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
     for (let i = 1; i <= numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      const pageText = content.items
-        .map((item: { str?: string }) => item.str || "")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pageText = (content.items as any[])
+        .map((item) => (typeof item.str === "string" ? item.str : ""))
         .join(" ")
         .replace(/\s+/g, " ")
         .trim();
@@ -107,16 +108,12 @@ async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
  */
 async function extractTextWithPdfParse(buffer: Buffer): Promise<string> {
   try {
-    // Dynamic import with proper handling for the module
-    const pdfParse = (await import("pdf-parse")).default;
+    // Dynamic import - pdf-parse exports differently in ESM vs CJS
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfParseModule = await import("pdf-parse") as any;
+    const pdfParse = pdfParseModule.default || pdfParseModule;
 
-    // pdf-parse options to improve extraction
-    const options = {
-      // Don't render pages, just extract text
-      max: 0,
-    };
-
-    const data = await pdfParse(buffer, options);
+    const data = await pdfParse(buffer);
     const text = data.text?.trim() || "";
 
     console.log(`[pdf-parse] Extracted ${text.length} characters`);
