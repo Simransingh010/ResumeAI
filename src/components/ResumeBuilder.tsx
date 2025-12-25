@@ -13,8 +13,6 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import CommandPalette, { FiDownload, FiSave, FiRotateCcw, FiRotateCw, FiTrash2, FiSun, FiMoon } from "./ui/CommandPalette";
 import ProgressIndicator from "./ui/ProgressIndicator";
 import KeyboardShortcutsHelp from "./ui/KeyboardShortcutsHelp";
-import Confetti from "./ui/Confetti";
-import Toast from "./ui/Toast";
 import ResumeScoreWidget from "./ui/ResumeScoreWidget";
 import { FiCommand, FiHelpCircle, FiClock } from "react-icons/fi";
 
@@ -56,8 +54,6 @@ export default function ResumeBuilder() {
   // UI State
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [hasLoadedDraft, setHasLoadedDraft] = useState(false);
 
@@ -77,7 +73,6 @@ export default function ResumeBuilder() {
       const savedDraft = loadSaved();
       if (savedDraft && JSON.stringify(savedDraft) !== JSON.stringify(DefaultResumeData)) {
         setResumeDataInternal(savedDraft);
-        setToast({ message: "Draft restored from your last session", type: "info" });
       }
       setHasLoadedDraft(true);
     }
@@ -130,7 +125,6 @@ export default function ResumeBuilder() {
   // Save data handler
   const handleSaveData = useCallback(() => {
     forceSave();
-    setToast({ message: "Resume saved successfully!", type: "success" });
   }, [forceSave]);
 
   // Clear data handler
@@ -138,7 +132,6 @@ export default function ResumeBuilder() {
     if (window.confirm("Are you sure you want to clear all data? This cannot be undone.")) {
       resetHistory(DefaultResumeData);
       clearSaved();
-      setToast({ message: "All data cleared", type: "info" });
     }
   }, [resetHistory, clearSaved]);
 
@@ -155,18 +148,14 @@ export default function ResumeBuilder() {
     }
   }, [isDark]);
 
-  // Undo handler with toast
+  // Undo handler
   const handleUndo = useCallback(() => {
-    if (undo()) {
-      setToast({ message: "Undo successful", type: "info" });
-    }
+    undo();
   }, [undo]);
 
-  // Redo handler with toast
+  // Redo handler
   const handleRedo = useCallback(() => {
-    if (redo()) {
-      setToast({ message: "Redo successful", type: "info" });
-    }
+    redo();
   }, [redo]);
 
   // Command palette commands
@@ -250,22 +239,7 @@ export default function ResumeBuilder() {
     { id: "skills", label: "Skills", isComplete: resumeData.skills.length > 0 },
   ], [resumeData]);
 
-  // Track if confetti has been shown for current completion state
-  const [hasShownConfetti, setHasShownConfetti] = useState(false);
 
-  // Check for completion and show confetti
-  useEffect(() => {
-    const allComplete = progressSections.every((s) => s.isComplete);
-    if (allComplete && !hasShownConfetti) {
-      setShowConfetti(true);
-      setHasShownConfetti(true);
-      setToast({ message: "🎉 Amazing! Your resume is complete!", type: "success" });
-      setTimeout(() => setShowConfetti(false), 4000);
-    } else if (!allComplete && hasShownConfetti) {
-      // Reset so confetti can show again if user completes resume again
-      setHasShownConfetti(false);
-    }
-  }, [progressSections, hasShownConfetti]);
 
   // Scroll to section
   const scrollToSection = useCallback((sectionId: string) => {
@@ -387,18 +361,6 @@ export default function ResumeBuilder() {
           isOpen={isShortcutsHelpOpen}
           onClose={() => setIsShortcutsHelpOpen(false)}
         />
-
-        {/* Confetti */}
-        <Confetti isActive={showConfetti} />
-
-        {/* Toast */}
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
       </ResumeContext.Provider>
     </>
   );
