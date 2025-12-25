@@ -175,7 +175,7 @@ async function analyzeWithGemini(
   isBuffer: boolean = false,
   retryCount: number = 0
 ): Promise<GeminiAnalysisResult> {
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 3;
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY for Gemini analysis");
@@ -233,9 +233,12 @@ Analyze thoroughly:
 
 Provide specific, actionable feedback. Do not add extra commentary outside the JSON.`;
 
-  // Use gemini-1.5-flash which has better free tier limits
-  // gemini-2.0-flash has stricter quotas on free tier
-  const modelName = "gemini-1.5-flash";
+  // Models to try in order of preference (updated Dec 2025)
+  // gemini-2.5-flash is fast and has good free tier limits
+  // gemini-2.5-pro is the premium fallback
+  const models = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
+  const modelName = models[Math.min(retryCount, models.length - 1)];
+  console.log(`[gemini] Using model: ${modelName} (attempt ${retryCount + 1})`);
   const model = genAIClient.getGenerativeModel({ model: modelName });
 
   // Build the content parts
