@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --background: #ffffff;
     --foreground: #171717;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: #0a0a0a;
-      --foreground: #ededed;
-    }
+  .dark {
+    --background: #0a0a0a;
+    --foreground: #ededed;
   }
 
   body {
@@ -32,10 +32,10 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 25% 10%, rgba(255,255,255,0.02), transparent 40%),
-    radial-gradient(circle at 75% 35%, rgba(255,255,255,0.02), transparent 40%),
-    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    radial-gradient(circle at 25% 10%, rgba(255, 255, 255, 0.02), transparent 40%),
+    radial-gradient(circle at 75% 35%, rgba(255, 255, 255, 0.02), transparent 40%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 400px 400px, 400px 400px, 40px 40px, 40px 40px;
   background-position: 0 0, 0 0, 0 0, 0 0;
   pointer-events: none;
@@ -46,8 +46,8 @@
   width: 12px;
   height: 12px;
   border-radius: 9999px;
-  background: rgba(255,255,255,0.6);
-  box-shadow: 0 0 0 0 rgba(255,255,255,0.45);
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45);
   transform: translate(-50%, -50%);
   animation: ripplePulse 1800ms ease-out forwards;
 }
@@ -55,15 +55,17 @@
 @keyframes ripplePulse {
   0% {
     opacity: 0.9;
-    box-shadow: 0 0 0 0 rgba(255,255,255,0.45), 0 0 0 0 rgba(255,255,255,0.25);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45), 0 0 0 0 rgba(255, 255, 255, 0.25);
   }
+
   70% {
     opacity: 0.4;
-    box-shadow: 0 0 0 24px rgba(255,255,255,0.0), 0 0 0 48px rgba(255,255,255,0.0);
+    box-shadow: 0 0 0 24px rgba(255, 255, 255, 0.0), 0 0 0 48px rgba(255, 255, 255, 0.0);
   }
+
   100% {
     opacity: 0;
-    box-shadow: 0 0 0 64px rgba(255,255,255,0), 0 0 0 96px rgba(255,255,255,0);
+    box-shadow: 0 0 0 64px rgba(255, 255, 255, 0), 0 0 0 96px rgba(255, 255, 255, 0);
   }
 }
 
@@ -83,6 +85,18 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgb(162 28 175);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: rgb(31 41 55);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgb(168 85 247);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(147 51 234);
 }
 
 textarea:focus,
@@ -184,7 +198,9 @@ input:focus {
 
 /* Button styles for add/delete actions */
 button[aria-label="Add"],
-button[aria-label="Delete"] {
+button[aria-label="Delete"],
+button[aria-label="Add Skill Group"],
+button[aria-label="Remove"] {
   padding: 0.5rem;
   width: 2.5rem;
   height: 2.5rem;
@@ -200,36 +216,52 @@ button[aria-label="Delete"] {
   cursor: pointer;
 }
 
-button[aria-label="Add"]:hover {
+button[aria-label="Add"]:hover,
+button[aria-label="Add Skill Group"]:hover {
   background-color: rgb(55 65 81);
   transform: scale(1.05);
 }
 
-button[aria-label="Delete"] {
+button[aria-label="Delete"],
+button[aria-label="Remove"] {
   background-color: rgb(220 38 38);
 }
 
-button[aria-label="Delete"]:hover {
+button[aria-label="Delete"]:hover,
+button[aria-label="Remove"]:hover {
   background-color: rgb(185 28 28);
   transform: scale(1.05);
 }
 
-.dark button[aria-label="Add"] {
-  background-color: white;
-  color: rgb(17 24 39);
+.dark button[aria-label="Add"],
+.dark button[aria-label="Add Skill Group"] {
+  background-color: rgb(168 85 247);
+  color: white;
 }
 
-.dark button[aria-label="Add"]:hover {
-  background-color: rgb(229 231 235);
+.dark button[aria-label="Add"]:hover,
+.dark button[aria-label="Add Skill Group"]:hover {
+  background-color: rgb(147 51 234);
 }
 
-.dark button[aria-label="Delete"] {
+.dark button[aria-label="Delete"],
+.dark button[aria-label="Remove"] {
   background-color: rgb(239 68 68);
   color: white;
 }
 
-.dark button[aria-label="Delete"]:hover {
+.dark button[aria-label="Delete"]:hover,
+.dark button[aria-label="Remove"]:hover {
   background-color: rgb(220 38 38);
+}
+
+/* Date input dark mode styles */
+input[type="date"] {
+  color-scheme: light;
+}
+
+.dark input[type="date"] {
+  color-scheme: dark;
 }
 
 .flex-wrap-gap-2 {
@@ -299,6 +331,10 @@ button[aria-label="Delete"]:hover {
   cursor: text;
 }
 
+.dark .editable:hover {
+  background-color: rgb(55 65 81);
+}
+
 .name {
   font-size: 20px;
   font-weight: 700;
@@ -339,6 +375,7 @@ button[aria-label="Delete"]:hover {
 }
 
 @media print {
+
   /* Hide all UI elements */
   .exclude-print {
     display: none !important;
@@ -406,5 +443,146 @@ button[aria-label="Delete"]:hover {
   /* Ensure proper spacing */
   .resume-content {
     width: 100%;
+  }
+}
+
+
+/* Toast slide-in animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Focus visible styles for accessibility */
+:focus-visible {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: rgb(17 24 39);
+  color: white;
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Confetti animation */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100vh) rotate(720deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confetti-fall linear forwards;
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Scale in animation */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Bounce animation for buttons */
+@keyframes bounce-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.hover\:animate-bounce-subtle:hover {
+  animation: bounce-subtle 0.3s ease-in-out;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

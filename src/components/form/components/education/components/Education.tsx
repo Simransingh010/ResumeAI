@@ -57,7 +57,7 @@ const Education = ({ education, index }: EducationProps) => {
           removeEducation(resumeData, setResumeData, index);
         }}
         aria-label="Remove"
-        className="p-2 text-white h-fit bg-fuchsia-700 rounded text-xl"
+        className="p-2 text-white h-fit bg-red-600 dark:bg-red-500 rounded text-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
       >
         <BsTrash3 />
       </button>

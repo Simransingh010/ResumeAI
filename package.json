@@ -6,7 +6,13 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "clean": "rm -rf .next node_modules/.cache",
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,7 +33,7 @@
     "eslint-config-next": "15.5.4",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.3",
-    "next": "15.5.4",
+    "next": "^15.5.9",
     "pdf-parse": "^2.1.6",
     "pdf2json": "3.2.2",
     "pdfjs-dist": "^4.3.136",

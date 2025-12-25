@@ -31,7 +31,7 @@ const Project = ({ project, index }: ProjectProps) => {
           name="description"
           className="w-full mb-0 other-input h-20"
           value={project.description}
-          onChange={(e: any) =>
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
             handleProject(resumeData, setResumeData, e, index)
           }
         />
@@ -40,7 +40,7 @@ const Project = ({ project, index }: ProjectProps) => {
           name="keyAchievements"
           className="w-full mb-0 other-input h-32"
           value={project.keyAchievements}
-          onChange={(e: any) =>
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
             handleProject(resumeData, setResumeData, e, index)
           }
         />
@@ -67,7 +67,7 @@ const Project = ({ project, index }: ProjectProps) => {
           removeProject(resumeData, setResumeData, index);
         }}
         aria-label="Remove"
-        className="p-2 text-white h-fit bg-fuchsia-700 rounded text-xl"
+        className="p-2 text-white h-fit bg-red-600 dark:bg-red-500 rounded text-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
       >
         <BsTrash3 />
       </button>

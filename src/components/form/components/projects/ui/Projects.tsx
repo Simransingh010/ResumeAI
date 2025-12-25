@@ -21,7 +21,7 @@ const Projects = () => {
           addProject(resumeData, setResumeData);
         }}
         aria-label="Add"
-        className="p-2 w-[37px] text-white bg-fuchsia-700 rounded text-xl"
+        className="p-2 w-[37px] text-white bg-gray-900 dark:bg-purple-500 rounded text-xl hover:bg-gray-700 dark:hover:bg-purple-600 transition-colors"
       >
         <MdAddCircle />
       </button>

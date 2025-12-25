@@ -4,6 +4,8 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import AnalysisResults from "@/components/AnalysisResults";
+import FileDropzone from "@/components/ui/FileDropzone";
+import { FiArrowRight, FiFileText } from "react-icons/fi";
 
 export interface AnalysisResult {
   score: number;
@@ -61,6 +63,7 @@ export default function AnalyzePage() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState("");
+  const [showJobDesc, setShowJobDesc] = useState(false);
 
   const loadingSteps = [
     "Parsing your resume",
@@ -138,36 +141,46 @@ export default function AnalyzePage() {
   }, [loadingSteps.length, loading]);
 
   if (!session) {
-    return <div className="text-center p-8">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
   }
 
   return (
     <>
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-xl ring-1 ring-slate-100 dark:bg-slate-950 dark:ring-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-2xl bg-white p-8 shadow-2xl border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
             <div className="mb-8 text-center">
-              <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200">Analyzing your resume</h2>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">This usually takes just a few seconds.</p>
+              <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4">
+                <FiFileText className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-pulse" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Analyzing your resume</h2>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">This usually takes just a few seconds.</p>
             </div>
             <div className="space-y-4">
               {loadingSteps.map((label, index) => (
-                <div key={label} className="flex items-center gap-3">
-                  <span
-                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold ${index <= loadingStep
-                      ? "border-indigo-500 bg-indigo-500 text-white"
-                      : "border-slate-300 text-slate-400"
+                <div key={label} className="flex items-center gap-4">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all ${index < loadingStep
+                        ? "bg-green-500 text-white"
+                        : index === loadingStep
+                          ? "bg-blue-500 text-white animate-pulse"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-400"
                       }`}
                   >
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className={`text-sm ${index <= loadingStep ? "text-slate-800 dark:text-slate-100" : "text-slate-400"}`}>
+                    {index < loadingStep ? "✓" : index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-medium ${index <= loadingStep ? "text-gray-900 dark:text-white" : "text-gray-400"
+                      }`}>
                       {label}
                     </p>
                     {index === loadingStep && (
-                      <div className="mt-2 h-1 w-32 overflow-hidden rounded-full bg-slate-200">
-                        <div className="h-full w-full origin-left animate-[pulse_1.4s_linear_infinite] bg-indigo-500" />
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div className="h-full bg-blue-500 rounded-full animate-[pulse_1s_ease-in-out_infinite]" style={{ width: '60%' }} />
                       </div>
                     )}
                   </div>
@@ -177,43 +190,111 @@ export default function AnalyzePage() {
           </div>
         </div>
       )}
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        {!result ? (
-          <>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Upload Resume for ATS Analysis</h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Welcome, {session.user.email}!</p>
 
-            <form onSubmit={handleSubmit} className="mt-8 bg-white p-6 rounded-lg shadow-md space-y-4 dark:bg-gray-900 dark:border dark:border-gray-800">
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                required
-              />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="mx-auto max-w-4xl px-4 py-12">
+          {!result ? (
+            <>
+              {/* Header */}
+              <div className="text-center mb-10">
+                <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-3">
+                  Analyze Your Resume
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-400">
+                  Upload your resume and get instant AI-powered feedback
+                </p>
+              </div>
 
-              <textarea
-                placeholder="Optional: Paste job description for better keyword matching"
-                value={jobDesc}
-                onChange={(e) => setJobDesc(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md h-24 resize-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-              />
+              {/* Upload Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+                  <FileDropzone
+                    onFileSelect={setFile}
+                    selectedFile={file}
+                    onClear={() => setFile(null)}
+                    accept=".pdf"
+                    maxSize={5}
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading || !file}
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
-              >
-                {loading ? "Analyzing..." : "Analyze Resume"}
-              </button>
+                {/* Job Description Toggle */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setShowJobDesc(!showJobDesc)}
+                    className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white">Add Job Description</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Optional: Get keyword matching analysis
+                      </p>
+                    </div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${showJobDesc ? "bg-gray-900 dark:bg-white rotate-45" : "bg-gray-100 dark:bg-gray-800"
+                      }`}>
+                      <span className={`text-lg ${showJobDesc ? "text-white dark:text-gray-900" : "text-gray-600 dark:text-gray-400"}`}>+</span>
+                    </div>
+                  </button>
 
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            </form>
-          </>
-        ) : (
-          <AnalysisResults result={result} />
-        )}
-      </div >
+                  {showJobDesc && (
+                    <div className="px-6 pb-6">
+                      <textarea
+                        placeholder="Paste the job description here for better keyword matching..."
+                        value={jobDesc}
+                        onChange={(e) => setJobDesc(e.target.value)}
+                        className="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl h-32 resize-none bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading || !file}
+                  className="w-full flex items-center justify-center gap-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 px-6 rounded-xl font-bold text-lg hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                >
+                  {loading ? (
+                    "Analyzing..."
+                  ) : (
+                    <>
+                      Analyze Resume
+                      <FiArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+
+                {error && (
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                    <p className="text-red-600 dark:text-red-400 text-sm font-medium text-center">{error}</p>
+                  </div>
+                )}
+              </form>
+
+              {/* Tips */}
+              <div className="mt-10 grid sm:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+                  <div className="text-2xl mb-2">📄</div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">PDF Format</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Upload text-based PDFs for best results</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+                  <div className="text-2xl mb-2">⚡</div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">Instant Analysis</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Get results in under 30 seconds</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+                  <div className="text-2xl mb-2">🔒</div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">Secure & Private</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Your data is never stored or shared</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <AnalysisResults result={result} />
+          )}
+        </div>
+      </div>
     </>
   );
 }

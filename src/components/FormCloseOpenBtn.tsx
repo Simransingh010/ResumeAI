@@ -15,7 +15,7 @@ const FormCloseOpenBtn = ({ formClose, setFormClose }: FormCloseOpenBtnProps) =>
   return (
     <button
       aria-label="Form Open/Close"
-      className="exclude-print fixed bottom-5 left-10 font-bold rounded-full bg-white text-fuchsia-600 shadow-lg border-2 border-white z-50"
+      className="exclude-print fixed bottom-5 left-10 font-bold rounded-full bg-white dark:bg-gray-800 text-fuchsia-600 dark:text-purple-400 shadow-lg border-2 border-white dark:border-gray-700 z-50 hover:scale-105 transition-transform"
       onClick={() => setFormClose(!formClose)}
     >
       {formClose ? (

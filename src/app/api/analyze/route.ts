@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createServerSupabase } from "@/lib/supabase";
+import { checkRateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
+import { validateResumeFile, validateExtractedText, validateJobDescription } from "@/lib/validation";
+import { ERROR_MESSAGES, FILE_LIMITS } from "@/lib/constants";
 // No child processes or OCR needed; using pdfjs-dist Node build for text PDFs
 
 // In Node runtime we don't need a web worker for pdfjs; disable to avoid Next bundling worker chunks
@@ -63,8 +66,10 @@ interface GeminiAnalysisResult {
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   // Try pdf-parse first (works better in serverless environments like Vercel)
   try {
-    // Use dynamic require for CommonJS module
-    const pdfParse = require("pdf-parse");
+    // Use dynamic import for CommonJS module
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfParseModule = await import("pdf-parse") as any;
+    const pdfParse = pdfParseModule.default || pdfParseModule;
     const data = await pdfParse(buffer);
     const text = data.text.trim();
     if (text && text.length > 50) {
@@ -114,7 +119,7 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
  * Sends resume text to Gemini for structured ATS analysis.
  * Uses the gemini-2.5-flash-lite model, which is good for fast, structured JSON output.
  */
-async function analyzeWithGemini(text: string, jobDesc?: string, fileSize?: number, fileName?: string): Promise<GeminiAnalysisResult> {
+async function analyzeWithGemini(text: string, jobDesc?: string): Promise<GeminiAnalysisResult> {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY for Gemini analysis");
@@ -225,7 +230,19 @@ export async function POST(req: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: ERROR_MESSAGES.UNAUTHORIZED }, { status: 401 });
+  }
+
+  // Rate limiting
+  const rateLimitResult = checkRateLimit(user.id);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: ERROR_MESSAGES.RATE_LIMITED },
+      {
+        status: 429,
+        headers: getRateLimitHeaders(rateLimitResult),
+      }
+    );
   }
 
   try {
@@ -233,30 +250,50 @@ export async function POST(req: NextRequest) {
     const file = formData.get("resume") as File | null;
     const jobDesc = (formData.get("jobDesc") as string | null) || undefined;
 
-    if (!file || file.type !== "application/pdf") {
-      return NextResponse.json({ error: "Upload a valid PDF file" }, { status: 400 });
+    // Validate file
+    const fileValidation = validateResumeFile(file);
+    if (!fileValidation.valid || !file) {
+      return NextResponse.json({ error: fileValidation.error }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    console.log("[analyze] Processing PDF:", file.name, "Size:", file.size, "bytes");
-    
+    // At this point, file is guaranteed to be non-null
+    const validFile = file;
+
+    // Validate job description if provided
+    if (jobDesc) {
+      const jobDescValidation = validateJobDescription(jobDesc);
+      if (!jobDescValidation.valid) {
+        return NextResponse.json({ error: jobDescValidation.error }, { status: 400 });
+      }
+    }
+
+    // Additional file size check
+    if (validFile.size > FILE_LIMITS.MAX_SIZE_BYTES) {
+      return NextResponse.json({ error: ERROR_MESSAGES.FILE_TOO_LARGE }, { status: 400 });
+    }
+
+    const buffer = Buffer.from(await validFile.arrayBuffer());
+    console.log("[analyze] Processing PDF:", validFile.name, "Size:", validFile.size, "bytes");
+
     const text: string = await extractTextFromPDF(buffer);
     console.log("[analyze] Extracted text length:", text.length);
-    
-    if (!text || text.length < 50) {
+
+    // Validate extracted text
+    const textValidation = validateExtractedText(text);
+    if (!textValidation.valid) {
       console.error("[analyze] Insufficient text extracted. Length:", text.length);
-      return NextResponse.json({ 
-        error: "No extractable text found. Please ensure the PDF is text-based (not a scanned image).",
+      return NextResponse.json({
+        error: textValidation.error,
         details: {
           extractedLength: text.length,
-          fileName: file.name,
-          fileSize: file.size
+          fileName: validFile.name,
+          fileSize: validFile.size
         }
       }, { status: 400 });
     }
-    
 
-    const analysis = await analyzeWithGemini(text, jobDesc, file.size, file.name);
+
+    const analysis = await analyzeWithGemini(text, jobDesc);
 
     const payload = {
       user_id: user.id,
@@ -272,7 +309,7 @@ export async function POST(req: NextRequest) {
         feedback: analysis.feedback,
         sections: analysis.sections ?? {},
         jobDesc: jobDesc || null,
-        filename: file.name,
+        filename: validFile.name,
         analyzedAt: new Date().toISOString(),
       },
     };

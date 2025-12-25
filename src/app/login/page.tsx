@@ -12,7 +12,6 @@ export default function LoginPage() {
   );
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mask = (v: string) => (v && v.length > 12 ? `${v.slice(0, 4)}…${v.slice(-4)}` : "[masked]");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -24,7 +23,7 @@ export default function LoginPage() {
         try {
           // console.log('[login] session user:', { id: session.user.id, email: session.user.email });
           // console.log('[login] access_token (masked):', mask(session.access_token ?? ''));
-        } catch {}
+        } catch { }
         router.push('/analyze');
       }
     });
@@ -36,7 +35,7 @@ export default function LoginPage() {
         try {
           // console.log('[login] SIGNED_IN user:', { id: session.user.id, email: session.user.email });
           // console.log('[login] access_token (masked):', mask(session.access_token ?? ''));
-        } catch {}
+        } catch { }
       }
     });
     return () => {
@@ -57,7 +56,7 @@ export default function LoginPage() {
       const x = Math.random() * rect.width;
       const y = Math.random() * rect.height;
       ripple.style.left = `${x}px`;
-      ripple.style.top = `${y}px`;  
+      ripple.style.top = `${y}px`;
       container.appendChild(ripple);
       ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
     };
@@ -73,8 +72,8 @@ export default function LoginPage() {
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4 overflow-hidden">
       <div className="bg-grid" ref={containerRef} aria-hidden />
       <div className="relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md dark:bg-gray-900 dark:border dark:border-gray-800">
-          <h1 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Sign In to ATS Checker</h1>
-          <Auth
+        <h1 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Sign In to ATS Checker</h1>
+        <Auth
           supabaseClient={supabase}
           providers={['google']}  // Restrict to Google only
           appearance={{

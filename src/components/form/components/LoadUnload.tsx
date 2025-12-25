@@ -20,7 +20,7 @@ const LoadUnload = () => {
   };
 
   const handleDownload = (
-    data: any,
+    data: unknown,
     filename: string,
     event: React.MouseEvent
   ) => {

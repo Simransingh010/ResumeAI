@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useContext } from "react";
+import Image from "next/image";
 import { ResumeContext } from "../../ResumeBuilder";
 import DateRange from "../../utility/DateRange";
 
@@ -18,10 +19,13 @@ const Preview = () => {
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-2">
             {resumeData.profilePicture && (
-              <img
+              <Image
                 src={resumeData.profilePicture}
                 alt="Profile"
+                width={80}
+                height={80}
                 className="w-20 h-20 rounded-full object-cover"
+                unoptimized
               />
             )}
             <div>
@@ -31,7 +35,7 @@ const Preview = () => {
           </div>
           <div className="contact text-sm flex flex-wrap gap-3">
             {resumeData.contactInformation && (
-              <a 
+              <a
                 href={`tel:${resumeData.contactInformation.replace(/[^0-9+]/g, '')}`}
                 className="hover:text-fuchsia-600 transition-colors"
               >
@@ -39,7 +43,7 @@ const Preview = () => {
               </a>
             )}
             {resumeData.email && (
-              <a 
+              <a
                 href={`mailto:${resumeData.email}`}
                 className="hover:text-fuchsia-600 transition-colors"
               >
